@@ -80,7 +80,8 @@ def cli(install_rabbitmq, run_rabbit_server):
         start_rabbit_server()
 
 
-
+if __name__ == '__main__':
+    cli()
 
 
 
