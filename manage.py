@@ -66,25 +66,36 @@ def install_rabbit_if_necessary():
 
 
 def start_rabbit_server():
-    pass
+    start_server = envoy.run('sudo rabbitmq-server -detached')
+    print(start_server.std_out)
+    print(start_server.std_err)
+
+
+def stop_rabbit_server():
+    stop_server = envoy.run('sudo rabbitmqctl stop')
+    print(stop_server.std_out)
+    print(stop_server.std_err)
 
 
 @click.command()
-@click.option('--install_rabbitmq', help='Installs RabbitMQ using brew if not already installed')
-@click.option('--run_rabbit_server', help="Starts RabbitMQ Server")
-def cli(install_rabbitmq, run_rabbit_server):
+@click.option('--install_rabbitmq', is_flag=True, help='Installs RabbitMQ using brew if not already installed')
+@click.option('--run_rabbit', is_flag=True, help="Starts RabbitMQ Server")
+@click.option("--kill_rabbit", is_flag=True, help="Stops RabbitMQ Server")
+def cli(install_rabbitmq, run_rabbit, kill_rabbit):
+    """
+    Tool for installing and managing RabbitMQ.
+    """
     if install_rabbitmq:
         install_rabbit_if_necessary()
 
-    if run_rabbit_server:
+    if run_rabbit:
+        click.echo("Starting RabbitMQ server")
         start_rabbit_server()
+
+    if kill_rabbit:
+        click.echo("Stopping RabbitMQ server")
+        stop_rabbit_server()
 
 
 if __name__ == '__main__':
     cli()
-
-
-
-
-
-
