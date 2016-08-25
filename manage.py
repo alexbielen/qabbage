@@ -77,11 +77,43 @@ def stop_rabbit_server():
     print(stop_server.std_err)
 
 
+def setup_rabbit():
+    # setup user name and password
+    username = input("Please enter a username: ")
+    pw = input("Please enter password: ")
+    add_user = envoy.run('rabbitmqctl add_user {username} {password}'.format(username=username, pw=pw))
+    print(add_user.std_out)
+    print(add_user.std_err)
+
+    # setup virtual host
+    virtual_host = input("Please enter a name for the virtual host: ")
+    add_vhost = envoy.run("rabbitmqctl add_vhost {v_host}".format(v_host=virtual_host))
+    print(add_vhost.std_out)
+    print(add_vhost.std_err)
+
+    # set user tags
+    print(" [*] Setting user tags...")
+    user_tag = username + '_tag'
+    set_user_tags = envoy.run("rabbitmqctl set_user_tags {user} {user_tag}".format(user=username, user_tag=user_tag))
+    print(set_user_tags.std_out)
+    print(set_user_tags.std_err)
+
+    # set permisions
+    print(" [*] Setting user permissions...")
+    set_permissions = envoy.run(
+        'rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
+                                                                                      virt_host=virtual_host))
+    print(set_permissions.std_out)
+    print(set_permissions.std_err)
+
+
+
 @click.command()
 @click.option('--install_rabbitmq', is_flag=True, help='Installs RabbitMQ using brew if not already installed')
 @click.option('--run_rabbit', is_flag=True, help="Starts RabbitMQ Server")
 @click.option("--kill_rabbit", is_flag=True, help="Stops RabbitMQ Server")
-def cli(install_rabbitmq, run_rabbit, kill_rabbit):
+@click.option("--setup_rabbit", is_flag=True, help="Setups up RabbitMQ to work with Celery")
+def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit):
     """
     Tool for installing and managing RabbitMQ.
     """
@@ -95,6 +127,10 @@ def cli(install_rabbitmq, run_rabbit, kill_rabbit):
     if kill_rabbit:
         click.echo("Stopping RabbitMQ server")
         stop_rabbit_server()
+
+    if setup_rabbit:
+        click.echo("Setting up RabbitMQ: ")
+        click.echo("You will be prompted for everything needed to integrate celery with RabbitMQ")
 
 
 if __name__ == '__main__':
