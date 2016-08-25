@@ -25,36 +25,61 @@ SOFTWARE.
 """
 from types import SimpleNamespace
 
+import click
 import envoy
 
 exit_status = SimpleNamespace(success=0, error=1)
 
-print('Checking for RabbitMQ...')
-check_for_rabbit = envoy.run('which rabbitmq')
-status = check_for_rabbit.status_code
 
-if check_for_rabbit.status_code == exit_status.error:
-    print(' [*] RabbitMQ not found!')
-    should_install = input("Would you like to install it now? (Y/n): ")
+def install_rabbit_if_necessary():
+    """
+    Install rabbitmq if it is not already installed. Very primitive right now.
+    Works only for OS X and even then it's not very good.
+    :return: None
+    """
+    print('Checking for RabbitMQ...')
+    check_for_rabbit = envoy.run('which rabbitmq')
+    status = check_for_rabbit.status_code
 
-    if should_install == 'Y':
-        print(" [*] Installing RabbitMQ using brew...")
-        install_rabbit = envoy.run('brew install rabbitmq')
+    if status == exit_status.error:
+        print(' [*] RabbitMQ not found!')
+        should_install = input("Would you like to install it now? (Y/n): ")
 
-        error = install_rabbit.std_err
-        success = install_rabbit.std_out
+        if should_install == 'Y':
+            print(" [*] Installing RabbitMQ using brew...")
+            install_rabbit = envoy.run('brew install rabbitmq')
 
-        if install_rabbit.status_code != exit_status.success:
-            print(error)
+            error = install_rabbit.std_err
+            success = install_rabbit.std_out
+
+            if install_rabbit.status_code != exit_status.success:
+                print(error)
+            else:
+                print(success)
+                print("Please set PATH=$PATH:/usr/local/sbin in your shell's .bash_profile or equivalent")
+
         else:
-            print(success)
-            print("Please set PATH=$PATH:/usr/local/sbin in your shell's .bash_profile or equivalent")
+            print("Skipping installation and exiting!")
 
     else:
-        print("Skipping installation and exiting!")
+        print("RabbitMQ is already installed")
 
-else:
-    print("RabbitMQ is already installed")
+
+def start_rabbit_server():
+    pass
+
+
+@click.command()
+@click.option('--install_rabbitmq', help='Installs RabbitMQ using brew if not already installed')
+@click.option('--run_rabbit_server', help="Starts RabbitMQ Server")
+def cli(install_rabbitmq, run_rabbit_server):
+    if install_rabbitmq:
+        install_rabbit_if_necessary()
+
+    if run_rabbit_server:
+        start_rabbit_server()
+
+
 
 
 
