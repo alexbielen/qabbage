@@ -31,7 +31,7 @@ import envoy
 exit_status = SimpleNamespace(success=0, error=1)
 
 
-def install_rabbit_if_necessary():
+def _install_rabbit_if_necessary():
     """
     Install rabbitmq if it is not already installed. Very primitive right now.
     Works only for OS X and even then it's not very good.
@@ -65,19 +65,19 @@ def install_rabbit_if_necessary():
         print("RabbitMQ is already installed")
 
 
-def start_rabbit_server():
+def _run_rabbit():
     start_server = envoy.run('sudo rabbitmq-server -detached')
     print(start_server.std_out)
     print(start_server.std_err)
 
 
-def stop_rabbit_server():
+def _kill_rabbit():
     stop_server = envoy.run('sudo rabbitmqctl stop')
     print(stop_server.std_out)
     print(stop_server.std_err)
 
 
-def setup_rabbit():
+def _setup_rabbit():
     # setup user name and password
     username = input("Please enter a username: ")
     pw = input("Please enter password: ")
@@ -98,7 +98,7 @@ def setup_rabbit():
     print(set_user_tags.std_out)
     print(set_user_tags.std_err)
 
-    # set permisions
+    # set permissions
     print(" [*] Setting user permissions...")
     set_permissions = envoy.run(
         'rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
@@ -118,19 +118,20 @@ def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit):
     Tool for installing and managing RabbitMQ.
     """
     if install_rabbitmq:
-        install_rabbit_if_necessary()
+        _install_rabbit_if_necessary()
 
     if run_rabbit:
         click.echo("Starting RabbitMQ server")
-        start_rabbit_server()
+        _run_rabbit()
 
     if kill_rabbit:
         click.echo("Stopping RabbitMQ server")
-        stop_rabbit_server()
+        _kill_rabbit()
 
     if setup_rabbit:
         click.echo("Setting up RabbitMQ: ")
         click.echo("You will be prompted for everything needed to integrate celery with RabbitMQ")
+        _setup_rabbit()
 
 
 if __name__ == '__main__':
