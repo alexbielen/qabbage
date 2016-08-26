@@ -81,7 +81,7 @@ def _setup_rabbit():
     # setup user name and password
     username = input("Please enter a username: ")
     pw = input("Please enter password: ")
-    add_user = envoy.run('rabbitmqctl add_user {username} {password}'.format(username=username, pw=pw))
+    add_user = envoy.run('rabbitmqctl add_user {username} {pw}'.format(username=username, pw=pw))
     print(add_user.std_out)
     print(add_user.std_err)
 
@@ -107,13 +107,21 @@ def _setup_rabbit():
     print(set_permissions.std_err)
 
 
+def _get_rabbit_status():
+    get_status = envoy.run('sudo rabbitmqctl status')
+    print(get_status.std_out)
+    print(get_status.std_err)
+
+
+
 
 @click.command()
 @click.option('--install_rabbitmq', is_flag=True, help='Installs RabbitMQ using brew if not already installed')
 @click.option('--run_rabbit', is_flag=True, help="Starts RabbitMQ Server")
 @click.option("--kill_rabbit", is_flag=True, help="Stops RabbitMQ Server")
 @click.option("--setup_rabbit", is_flag=True, help="Setups up RabbitMQ to work with Celery")
-def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit):
+@click.option("--get_rabbit_status", is_flag=True, help="Get the status from a running RabbitMQ instance")
+def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit, get_rabbit_status):
     """
     Tool for installing and managing RabbitMQ.
     """
@@ -132,6 +140,11 @@ def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit):
         click.echo("Setting up RabbitMQ: ")
         click.echo("You will be prompted for everything needed to integrate celery with RabbitMQ")
         _setup_rabbit()
+
+    if get_rabbit_status:
+        click.echo("Getting RabbitMQ Status...")
+        _get_rabbit_status()
+
 
 
 if __name__ == '__main__':
