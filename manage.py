@@ -23,6 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from getpass import getpass
 from types import SimpleNamespace
 
 import click
@@ -80,28 +81,28 @@ def _kill_rabbit():
 def _setup_rabbit():
     # setup user name and password
     username = input("Please enter a username: ")
-    pw = input("Please enter password: ")
-    add_user = envoy.run('rabbitmqctl add_user {username} {pw}'.format(username=username, pw=pw))
+    pw = getpass("Please enter password: ")
+    add_user = envoy.run('sudo rabbitmqctl add_user {username} {pw}'.format(username=username, pw=pw))
     print(add_user.std_out)
     print(add_user.std_err)
 
     # setup virtual host
     virtual_host = input("Please enter a name for the virtual host: ")
-    add_vhost = envoy.run("rabbitmqctl add_vhost {v_host}".format(v_host=virtual_host))
+    add_vhost = envoy.run("sudo rabbitmqctl add_vhost {v_host}".format(v_host=virtual_host))
     print(add_vhost.std_out)
     print(add_vhost.std_err)
 
     # set user tags
     print(" [*] Setting user tags...")
     user_tag = username + '_tag'
-    set_user_tags = envoy.run("rabbitmqctl set_user_tags {user} {user_tag}".format(user=username, user_tag=user_tag))
+    set_user_tags = envoy.run("sudo rabbitmqctl set_user_tags {user} {user_tag}".format(user=username, user_tag=user_tag))
     print(set_user_tags.std_out)
     print(set_user_tags.std_err)
 
     # set permissions
     print(" [*] Setting user permissions...")
     set_permissions = envoy.run(
-        'rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
+        'sudo rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
                                                                                       virt_host=virtual_host))
     print(set_permissions.std_out)
     print(set_permissions.std_err)
