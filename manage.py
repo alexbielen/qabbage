@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from getpass import getpass
+import sys
 from types import SimpleNamespace
 
 import click
@@ -67,61 +68,92 @@ def _install_rabbit_if_necessary():
 
 
 def _run_rabbit():
+    """
+    Runs RabbitMQ.
+    """
     start_server = envoy.run('sudo rabbitmq-server -detached')
     print(start_server.std_out)
     print(start_server.std_err)
+    return start_server.status_code
 
 
 def _kill_rabbit():
+    """
+    Kills the running RabbitMQ server using the rabbitmqctl instead of pkill or kill.
+    """
     stop_server = envoy.run('sudo rabbitmqctl stop')
     print(stop_server.std_out)
     print(stop_server.std_err)
 
 
 def _setup_rabbit():
-    # setup user name and password
-    username = input("Please enter a username: ")
-    pw = getpass("Please enter password: ")
-    add_user = envoy.run('sudo rabbitmqctl add_user {username} {pw}'.format(username=username, pw=pw))
-    print(add_user.std_out)
-    print(add_user.std_err)
+    """
+    Check that RabbitMQ is running; if not try to run Rabbit.
 
-    # setup virtual host
-    virtual_host = input("Please enter a name for the virtual host: ")
-    add_vhost = envoy.run("sudo rabbitmqctl add_vhost {v_host}".format(v_host=virtual_host))
-    print(add_vhost.std_out)
-    print(add_vhost.std_err)
+    If that is successful start up the setup RabbitMQ process
+    which adds a user and virtual host and configures the added
+    user to be able to access the virtual host.
+    """
+    status = _get_rabbit_status()
 
-    # set user tags
-    print(" [*] Setting user tags...")
-    user_tag = username + '_tag'
-    set_user_tags = envoy.run("sudo rabbitmqctl set_user_tags {user} {user_tag}".format(user=username, user_tag=user_tag))
-    print(set_user_tags.std_out)
-    print(set_user_tags.std_err)
+    if status != exit_status.success:
+        startup = _run_rabbit()
+        if startup != exit_status.success:
+            print("Problem starting RabbitMQ")
+            print(startup.std_err)
+            sys.exit(1)
+    else:
+        startup = exit_status.success
 
-    # set permissions
-    print(" [*] Setting user permissions...")
-    set_permissions = envoy.run(
-        'sudo rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
-                                                                                      virt_host=virtual_host))
-    print(set_permissions.std_out)
-    print(set_permissions.std_err)
+    if startup == exit_status.success:
+        # setup user name and password
+        username = input("Please enter a username: ")
+        pw = getpass("Please enter password: ")
+        add_user = envoy.run('sudo rabbitmqctl add_user {username} {pw}'.format(username=username, pw=pw))
+        print(add_user.std_out)
+        print(add_user.std_err)
+
+        # setup virtual host
+        virtual_host = input("Please enter a name for the virtual host: ")
+        add_vhost = envoy.run("sudo rabbitmqctl add_vhost {v_host}".format(v_host=virtual_host))
+        print(add_vhost.std_out)
+        print(add_vhost.std_err)
+
+        # set user tags
+        print(" [*] Setting user tags...")
+        user_tag = username + '_tag'
+        set_user_tags = envoy.run(
+            "sudo rabbitmqctl set_user_tags {user} {user_tag}".format(user=username, user_tag=user_tag))
+        print(set_user_tags.std_out)
+        print(set_user_tags.std_err)
+
+        # set permissions
+        print(" [*] Setting user permissions...")
+        set_permissions = envoy.run(
+            'sudo rabbitmqctl set_permissions -p {virt_host} {username} ".*" ".*" ".*"'.format(username=username,
+                                                                                               virt_host=virtual_host))
+        print(set_permissions.std_out)
+        print(set_permissions.std_err)
+
+        print("Setup succeeded!")
 
 
 def _get_rabbit_status():
+    """
+    Gets the current status of the RabbitMQ Server.
+    """
     get_status = envoy.run('sudo rabbitmqctl status')
     print(get_status.std_out)
     print(get_status.std_err)
-
-
+    return get_status.status_code
 
 
 @click.command()
-@click.option('--install_rabbitmq', is_flag=True, help='Installs RabbitMQ using brew if not already installed')
-@click.option('--run_rabbit', is_flag=True, help="Starts RabbitMQ Server")
-@click.option("--kill_rabbit", is_flag=True, help="Stops RabbitMQ Server")
-@click.option("--setup_rabbit", is_flag=True, help="Setups up RabbitMQ to work with Celery")
-@click.option("--get_rabbit_status", is_flag=True, help="Get the status from a running RabbitMQ instance")
+@click.option('--install_rabbitmq', is_flag=True, help=_install_rabbit_if_necessary.__doc__)
+@click.option('--run_rabbit', is_flag=True, help=_run_rabbit.__doc__)
+@click.option("--kill_rabbit", is_flag=True, help=_kill_rabbit.__doc__)
+@click.option("--setup_rabbit", is_flag=True, help=_setup_rabbit.__doc__)
+@click.option("--get_rabbit_status", is_flag=True, help=_get_rabbit_status.__doc__)
 def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit, get_rabbit_status):
     """
     Tool for installing and managing RabbitMQ.
@@ -145,7 +177,6 @@ def cli(install_rabbitmq, run_rabbit, kill_rabbit, setup_rabbit, get_rabbit_stat
     if get_rabbit_status:
         click.echo("Getting RabbitMQ Status...")
         _get_rabbit_status()
-
 
 
 if __name__ == '__main__':
