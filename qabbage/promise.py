@@ -21,8 +21,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from functools import partial
 
 
+def promise(func):
+    """
+    Turns a function into a task, registers the function in the task registry and returns a lazy function.
+    :param func:
+    :return: lazy function
+    """
 
+    # todo: registry here once we figure that out
 
+    def inner(*args, **kwargs):
+        return partial(func, *args, *kwargs)
 
+    return inner

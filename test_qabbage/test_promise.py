@@ -21,21 +21,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import qabbage as q
-from celery_test.tasks import longtime_add, exception_thrower
+from qabbage.promise import promise
 
+def test_that_promise_returns_a_lazy_function():
 
-def good_result(vals):
-    return sum(vals)
+    @promise
+    def add(x, y):
+        return x + y
 
+    lazy_add = add(3, 4)
+    result = lazy_add()
 
-def bad_result(vals):
-    for x in vals:
-        print(x)
+    assert hasattr(lazy_add, '__call__')
+    assert result == 7
 
-
-def test_that_q_all_works_correctly():
-    nice = q.all(longtime_add.s(x, y) for x, y in zip(range(10), range(10))) \
-        .then(good_result, bad_result)
-
-    assert nice == 90
