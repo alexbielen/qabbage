@@ -58,4 +58,6 @@ ENV/
 # IntelliJ/Pycharm
 .idea
 
+# project specifc
 celery_test/
+qabbage_setup.py
