@@ -1,3 +1,4 @@
 click==6.6
 envoy==0.0.3
 wheel==0.24.0
+celery==3.1.23
