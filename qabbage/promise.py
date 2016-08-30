@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from functools import partial
+
 
 def promise_maker(app):
     """
@@ -40,7 +40,7 @@ def promise_maker(app):
         qabbage_task = task(func, name='qabbage_setup.' + func.__name__)
 
         def promise_inner_2kaB122(*args, **kwargs):
-            return partial(qabbage_task, *args, *kwargs)
+            return qabbage_task.s(*args, **kwargs)
 
         return promise_inner_2kaB122
 

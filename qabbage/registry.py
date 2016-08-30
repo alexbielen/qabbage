@@ -52,7 +52,7 @@ def load_qabbage_modules(file_paths):
     return promises
 
 
-def find_all_qabbage_tasks(globals, exclude_tests=True):
+def find_and_register_qabbage_tasks(outer_scope, exclude_tests=True):
     """
     Walks the directory and finds all of the scripts that import
     qabbage tasks.
@@ -79,19 +79,8 @@ def find_all_qabbage_tasks(globals, exclude_tests=True):
 
     promises = load_qabbage_modules(qabbage_files)
 
+    for promise in promises:
+        outer_scope[promise[0]] = promise[1]
+
     return promises
 
-
-class Registry(object):
-    """
-    Called by the promise decorator; stores paths to tasks that
-    are defined outside of the tasks file.
-
-    Should always be a singleton!
-    """
-
-    def __init__(self, registry_namespace):
-        self.registry_namespace = registry_namespace
-
-    def add_task(self, name, task):
-        self.registry_namespace[name] = task
