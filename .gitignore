@@ -61,3 +61,4 @@ ENV/
 # project specifc
 celery_test/
 qabbage_setup.py
+test_script.py

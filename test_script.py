@@ -21,27 +21,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from whatever import add_two_nums
+
+import qabbage as q
+
+def good_result(res):
+    print(res)
+    return res
+
+def bad_result(err):
+    print(err)
+
+cool = q.all([add_two_nums(x, y) for x, y in zip(range(100), range(100))]).then(
+    good_result, bad_result
+)
 
 
-def promise_maker(app):
-    """
-    Takes a celery app and returns a promise
-    :param app: celery app
-    :return:
-    """
-
-    def promise(func):
-        """
-        Turns a function into a task and returns a lazy function.
-        :param func:
-        :return: lazy function
-        """
-        task = app.task
-        qabbage_task = task(func, name='qabbage_setup.' + func.__name__)
-
-        def promise_inner_2kaB122(*args, **kwargs):
-            return qabbage_task.s(*args, **kwargs)
-
-        return promise_inner_2kaB122
-
-    return promise
