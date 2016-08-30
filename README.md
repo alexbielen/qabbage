@@ -32,6 +32,7 @@ if __name__ == '__main__':
 Set the broker connection string to your environment's own.
 
 `qabbage_setup.py` is responsible for
+
         1) Defining a promise decorator that can be used anywhere throughout your project
         2) Finding and 'registering' the aforementioned promises so that they can be used as Celery tasks.
 
@@ -75,10 +76,12 @@ if __name__ == '__main__':
     print(result)
 ```
 Lastly, start up your celery worker by navigating to the root directory of your project and running the following
-from the command line.
+from the command line:
+
 `celery -A qabbage_setup worker --loglevel=info`
 
 In a separate process from the Celery worker run:
+
 `python send_to_queues.py`
 
-Voila!
+Voila! You're asynchronous.
