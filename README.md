@@ -49,7 +49,7 @@ def get_gcd(x, y):
     return gcd(x, y)
 ```
 When `find_and_register_qabbage_tasks` runs in `qabbage_setup.py` it looks through all of the files in the project and
-registers any qabbage promises in the `qabbage_setup.py` namespace. When Celery is run with `qabbage_setup.py` as a parameter
+registers any qabbage promises it finds into the `qabbage_setup.py` namespace. When Celery is run with `qabbage_setup` as a parameter
 it is able to work with any promise defined in the project as though it was explictly registered with Celery.
 
 ###q.all
