@@ -25,7 +25,7 @@ import os
 from modulefinder import ModuleFinder
 import importlib.util as imp_util
 
-promise_name = 'promise'
+promise_inner_func_name = 'promise_inner_2kaB122'
 
 
 def load_qabbage_modules(file_paths):
@@ -34,22 +34,25 @@ def load_qabbage_modules(file_paths):
     :return:
     """
     promises = []
+    def filter_out_bad_path(path):
+        return 'qabbage_setup' not in path
 
-    for file_path in file_paths:
+
+    for file_path in filter(filter_out_bad_path, file_paths):
         spec = imp_util.spec_from_file_location('anything', file_path)
         foo = imp_util.module_from_spec(spec)
         spec.loader.exec_module(foo)
 
         for name in dir(foo):
-            if name[0:2] != '__' and name != promise_name:
+            if name[0:2] != '__' and name != 'promise':
                 obj = getattr(foo, name)
-                if hasattr(obj, '__call__') and promise_name in obj.__repr__():
-                    promises.append(obj)
+                if hasattr(obj, '__call__') and promise_inner_func_name in obj.__name__:
+                    promises.append((name, obj))
 
     return promises
 
 
-def find_all_qabbage_tasks():
+def find_all_qabbage_tasks(globals, exclude_tests=True):
     """
     Walks the directory and finds all of the scripts that import
     qabbage tasks.
@@ -67,16 +70,14 @@ def find_all_qabbage_tasks():
             if file_extension == '.py':
                 all_files.append(os.path.join(*path, file))
 
-    for file in all_files:
-        finder = ModuleFinder()
+    finder = ModuleFinder()
+    for file in filter(lambda x: 'test_' not in x, all_files):
         finder.run_script(file)
         for name, mod in finder.modules.items():
             if name == 'qabbage':
                 qabbage_files.append(file)
 
     promises = load_qabbage_modules(qabbage_files)
-
-    cool = 'what'
 
     return promises
 

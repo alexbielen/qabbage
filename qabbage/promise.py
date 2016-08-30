@@ -23,17 +23,25 @@ SOFTWARE.
 """
 from functools import partial
 
-
-def promise(func):
+def promise_maker(app):
     """
-    Turns a function into a task, registers the function in the task registry and returns a lazy function.
-    :param func:
-    :return: lazy function
+    Takes a celery app and returns a promise
+    :param app: celery app
+    :return:
     """
 
-    # todo: registry here once we figure that out
+    def promise(func):
+        """
+        Turns a function into a task and returns a lazy function.
+        :param func:
+        :return: lazy function
+        """
+        task = app.task
+        qabbage_task = task(func, name='qabbage_setup.' + func.__name__)
 
-    def inner(*args, **kwargs):
-        return partial(func, *args, *kwargs)
+        def promise_inner_2kaB122(*args, **kwargs):
+            return partial(qabbage_task, *args, *kwargs)
 
-    return inner
+        return promise_inner_2kaB122
+
+    return promise
